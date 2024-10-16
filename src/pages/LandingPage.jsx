@@ -1,7 +1,7 @@
 
 import {BrowserRouter as Router, Route, Routes} from "react-router-dom"
 // import ProtectedRoute from "../components/ProtectedRoute"
-import { Hero, SignUp, Login } from "../index"
+import { Hero, SignUp, Login, Home } from "../index"
 // import Navbar from "../components/Navbar"
 // import ProtectedRoute from "../components/ProtectedRoute"
 
@@ -23,6 +23,7 @@ function LandingPage() {
 
                     <Route path="/sign-up" element={<SignUp />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/home" element={<Home />} />
                     
                     {/* 
                     <Route path="/explore" element={<ExplorePage />} />
