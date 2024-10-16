@@ -6,6 +6,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase_setup/firebase'; // Import Auth
 import 'react-quill/dist/quill.snow.css'; // Import Quill styles
+import { toast, ToastContainer } from 'react-toastify'; // Import Toastify
+import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
 
 function WriteStory() {
   const { id } = useParams(); // Get the story ID from the URL
@@ -59,44 +61,42 @@ function WriteStory() {
   };
 
   // Save the chapter updates to Firestore
-// Save the chapter updates to Firestore
-const handleSave = async () => {
+  const handleSave = async () => {
     if (!editorContent) {
-      alert("Please write something before saving.");
+      toast.error("Please write something before saving.");
       return;
     }
-  
+
     try {
       const storyRef = doc(db, 'users', user.uid, 'myStories', id);
-  
+
       // Update the selected chapter content or add a new chapter if it doesn't exist
       const updatedChapters = {
         ...story.chapters,
         [selectedChapter]: editorContent, // Update the content for the selected chapter
       };
-  
+
       await updateDoc(storyRef, {
         chapters: updatedChapters, // Save the updated chapters with the new content
         updatedAt: new Date(), // Optionally update the timestamp
       });
-  
-      alert("Chapter updated successfully!");
-  
+
+      toast.success("Chapter updated successfully!");
+
       // Update local state to reflect the changes without requiring a refresh
       setStory((prevStory) => ({
         ...prevStory,
         chapters: updatedChapters, // Update the chapters in the local state
       }));
-  
+
       // Optionally, set the editor content to the saved chapter (if needed)
       setEditorContent(updatedChapters[selectedChapter]);
-  
+
     } catch (error) {
       console.error("Error saving story: ", error);
-      alert("Failed to save the chapter.");
+      toast.error("Failed to save the chapter.");
     }
   };
-  
 
   // Select a chapter from the list
   const handleChapterSelect = (chapterKey) => {
@@ -169,6 +169,8 @@ const handleSave = async () => {
       ) : (
         <p>Story not found.</p>
       )}
+      
+      <ToastContainer />
     </div>
   );
 }
