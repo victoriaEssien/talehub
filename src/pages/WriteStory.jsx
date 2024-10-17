@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import { db } from '../firebase_setup/firebase';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc, getDoc, setDoc } from 'firebase/firestore';
 import { useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '../firebase_setup/firebase';
@@ -25,10 +25,18 @@ function WriteStory() {
         console.log("User not authenticated.");
         return;
       }
-
+  
       try {
-        const storyRef = doc(db, 'users', user.uid, 'myStories', id);
-        const docSnap = await getDoc(storyRef);
+        // Try fetching from myClonedStories first
+        let storyRef = doc(db, 'users', user.uid, 'myClonedStories', id);
+        let docSnap = await getDoc(storyRef);
+  
+        if (!docSnap.exists()) {
+          // If not found in myClonedStories, fetch from myStories (the ones created by the user)
+          storyRef = doc(db, 'users', user.uid, 'myStories', id);
+          docSnap = await getDoc(storyRef);
+        }
+  
         if (docSnap.exists()) {
           const storyData = docSnap.data();
           const chapters = storyData.chapters || {};  // Make sure to fetch the chapters (stored as key-value pairs)
@@ -42,7 +50,7 @@ function WriteStory() {
             setEditorContent(chapters[firstChapterKey]); // Set the initial chapter content
           }
         } else {
-          console.error("Story not found");
+          console.error("Story not found in both collections.");
         }
       } catch (error) {
         console.error("Error fetching story details: ", error);
@@ -50,9 +58,10 @@ function WriteStory() {
         setLoading(false);
       }
     };
-
+  
     fetchStory();
-  }, [id, user]); // Fetch when 'id' or 'user' changes
+  }, [id, user]);
+  
 
   // Handle editor content change
   const handleEditorChange = (value) => {
@@ -110,6 +119,36 @@ function WriteStory() {
     setEditorContent(''); // Clear the editor content for the new chapter
   };
 
+  // Handle "Publish" - Duplicate or Update story in the 'stories' collection
+  const handlePublish = async () => {
+    if (!story || !user) return;
+
+    try {
+      const storyRef = doc(db, 'stories', id); // Reference the story in the 'stories' collection
+      const docSnap = await getDoc(storyRef);
+
+      const storyData = {
+        ...story,  // Include the full story data
+        creatorId: user.uid,
+        updatedAt: new Date(),  // Set the publish/update time
+      };
+
+      if (docSnap.exists()) {
+        // Story already published, so update it
+        await updateDoc(storyRef, storyData);
+        toast.success("Story updated successfully in the 'stories' collection!");
+      } else {
+        // Publish as a new story
+        await setDoc(storyRef, storyData);
+        toast.success("Story published successfully!");
+      }
+
+    } catch (error) {
+      console.error("Error publishing story: ", error);
+      toast.error("Failed to publish the story.");
+    }
+  };
+
   return (
     <div className="write-story">
       {loading ? (
@@ -163,6 +202,10 @@ function WriteStory() {
           {/* Save button */}
           <div className="save-button">
             <button onClick={handleSave}>Save Chapter</button>
+            {/* Publish button */}
+            <button onClick={handlePublish}>
+              Publish
+            </button>
           </div>
         </div>
       ) : (

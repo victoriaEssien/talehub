@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { db, auth, storage } from '../firebase_setup/firebase';  // Import Firestore, Auth, and Storage
 import { collection, getDocs, addDoc } from 'firebase/firestore';
 import { toast, ToastContainer } from 'react-toastify';
@@ -76,7 +77,8 @@ function Home() {
             image: downloadURL,  // Save download URL
             title,
             plot,
-            createdAt: new Date()
+            createdAt: new Date(),
+            creatorId: user.uid // Save creator id for later use
           });
 
           toast.success("Story added successfully!");
@@ -108,10 +110,10 @@ function Home() {
           <h2>Stories</h2>
           <ul>
             {stories.map((story) => (
-              <li key={story.id}>
+              <Link to={`/story/${story.id}`} key={story.id}>
                 <img src={story.image} alt={story.title} width={100} />
                 <h3>{story.title}</h3>
-              </li>
+              </Link>
             ))}
           </ul>
         </div>
