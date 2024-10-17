@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
-import { db } from '../firebase_setup/firebase'; // Import Firestore
+import { db } from '../firebase_setup/firebase';
 import { doc, updateDoc, getDoc } from 'firebase/firestore';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { useAuthState } from 'react-firebase-hooks/auth';
-import { auth } from '../firebase_setup/firebase'; // Import Auth
-import 'react-quill/dist/quill.snow.css'; // Import Quill styles
-import { toast, ToastContainer } from 'react-toastify'; // Import Toastify
-import 'react-toastify/dist/ReactToastify.css'; // Import Toastify styles
+import { auth } from '../firebase_setup/firebase';
+import 'react-quill/dist/quill.snow.css';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function WriteStory() {
   const { id } = useParams(); // Get the story ID from the URL
@@ -16,7 +16,6 @@ function WriteStory() {
   const [editorContent, setEditorContent] = useState(''); // The content of the chapter being edited
   const [selectedChapter, setSelectedChapter] = useState(null); // Track the selected chapter key
   const [user] = useAuthState(auth); // Get current authenticated user
-  const navigate = useNavigate(); // Use useNavigate hook for navigation
   const quillRef = useRef(null); // create a ref
 
   // Fetch the story details from Firestore on component mount
