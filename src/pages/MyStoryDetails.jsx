@@ -25,7 +25,18 @@ function MyStoryDetails() {
         if (clonedStorySnap.exists()) {
           const storyData = clonedStorySnap.data();
           setStory(storyData);
-          setAuthorName(user.displayName || 'Unknown Author');  // Set the user's name as the author
+
+          // If this is a cloned story, get the original creator's name
+          if (storyData.creatorId) {
+            const originalCreatorRef = doc(db, 'users', storyData.creatorId);
+            const originalCreatorSnap = await getDoc(originalCreatorRef);
+
+            if (originalCreatorSnap.exists()) {
+              setAuthorName(originalCreatorSnap.data().username || 'Unknown Author');
+            } else {
+              setAuthorName('Unknown Author');
+            }
+          }
         } else {
           // If the story is not in 'myClonedStories', fetch from 'myStories'
           const myStoryRef = doc(db, 'users', user.uid, 'myStories', id);
@@ -34,6 +45,8 @@ function MyStoryDetails() {
           if (myStorySnap.exists()) {
             const storyData = myStorySnap.data();
             setStory(storyData);
+
+            // For 'myStories', the author is the current user
             setAuthorName(user.displayName || 'Unknown Author');
           } else {
             toast.error("Story not found");
